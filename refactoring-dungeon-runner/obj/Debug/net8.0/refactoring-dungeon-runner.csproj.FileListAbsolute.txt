@@ -12,3 +12,4 @@ C:\dev\BookKlub\refactoring-dungeon-runner\refactoring-dungeon-runner\obj\Debug\
 C:\dev\BookKlub\refactoring-dungeon-runner\refactoring-dungeon-runner\obj\Debug\net8.0\refactoring-dungeon-runner.pdb
 C:\dev\BookKlub\refactoring-dungeon-runner\refactoring-dungeon-runner\obj\Debug\net8.0\refactoring-dungeon-runner.genruntimeconfig.cache
 C:\dev\BookKlub\refactoring-dungeon-runner\refactoring-dungeon-runner\obj\Debug\net8.0\ref\refactoring-dungeon-runner.dll
+C:\dev\BookKlub\refactoring-dungeon-runner\refactoring-dungeon-runner\obj\Debug\net8.0\refactoring-dungeon-runner.sourcelink.json

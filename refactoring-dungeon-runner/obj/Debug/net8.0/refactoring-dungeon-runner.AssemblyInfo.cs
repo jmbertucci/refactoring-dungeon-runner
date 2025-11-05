@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("refactoring-dungeon-runner")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+290d5e4d6cb24479a29f7cc0bc0470c616a71275")]
 [assembly: System.Reflection.AssemblyProductAttribute("refactoring-dungeon-runner")]
 [assembly: System.Reflection.AssemblyTitleAttribute("refactoring-dungeon-runner")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
