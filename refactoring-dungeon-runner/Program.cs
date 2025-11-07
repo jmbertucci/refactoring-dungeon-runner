@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace refactoring_dungeon_runner
+namespace refactoring_dungeonrunner
 {
     internal class Program : DungeonRunner
     {

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Multiline string: one phrase per line -->
+  <data name="RoomEntryPhrases" xml:space="preserve">
+    <value>You step cautiously into the next chamber...
+You tiptoe in - no time to dilly dally.
+You stride inside - no shilly-shally.
+You sneak through the doorway, hush-hush.
+You slide into the room, quick as a flick.
+You saunter in without a fuss or muss.
+You slink in, slick as a shadow.
+You meander in - clickety-clack go your boots.
+You hop in with a skip and a step.
+You shuffle in - steady and ready.
+You barrel in - whoops-a-daisy!
+You creep in, sneaky-beaky.
+You glide in like a whisper in the dark.
+You poke your head in - peeky-peek.
+You slip inside - hocus pocus.
+You enter - no dilly dally, tally-ho!</value>
+  </data>
+</root>
