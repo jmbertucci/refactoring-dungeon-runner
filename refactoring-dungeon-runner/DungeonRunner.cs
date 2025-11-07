@@ -2,10 +2,20 @@
 {
     public class DungeonRunner
     {
+        private readonly int _startingHealth;
+
+        public DungeonRunner(int startingHealth = 100)
+        {
+            if (startingHealth <= 0)
+                throw new ArgumentOutOfRangeException(nameof(startingHealth), "Starting health must be positive.");
+
+            _startingHealth = startingHealth;
+        }
+
         public void Run()
         {
             var random = new Random();
-            int playerHealth = 100;
+            int playerHealth = _startingHealth;
             int gold = 0;
             int x = 0;
             int y = 0;
@@ -13,25 +23,24 @@
             bool gameOver = false;
             string playerName = "";
 
-            // Possible phrases when entering a new room (includes the original line).
             string[] roomEntryPhrases = new[]
             {
                 "You step cautiously into the next chamber...",
-                "You tiptoe in—no time to dilly dally.",
-                "You stride inside—no shilly-shally.",
+                "You tiptoe in - no time to dilly dally.",
+                "You stride inside - no shilly-shally.",
                 "You sneak through the doorway, hush-hush.",
                 "You slide into the room, quick as a flick.",
                 "You saunter in without a fuss or muss.",
                 "You slink in, slick as a shadow.",
-                "You meander in—clickety-clack go your boots.",
+                "You meander in - clickety-clack go your boots.",
                 "You hop in with a skip and a step.",
-                "You shuffle in—steady and ready.",
-                "You barrel in—whoops-a-daisy!",
+                "You shuffle in - steady and ready.",
+                "You barrel in - whoops-a-daisy!",
                 "You creep in, sneaky-beaky.",
                 "You glide in like a whisper in the dark.",
-                "You poke your head in—peeky-peek.",
-                "You slip inside—hocus pocus.",
-                "You enter—no dilly dally, tally-ho!"
+                "You poke your head in - peeky-peek.",
+                "You slip inside - hocus pocus.",
+                "You enter - no dilly dally, tally-ho!"
             };
 
             Console.WriteLine("Welcome to Dungeon Runner!");
@@ -93,7 +102,7 @@
                     else if (monsterType == 1) monsterName = "Skeleton";
                     else monsterName = "Slime";
 
-                    Console.WriteLine($"It’s a {monsterName} with {monsterHealth} HP!");
+                    Console.WriteLine($"It's a {monsterName} with {monsterHealth} HP!");
 
                     bool fightOver = false;
                     while (!fightOver)
@@ -198,20 +207,20 @@
                     Console.WriteLine($"You recover {heal} HP.");
                 }
 
-                if (playerHealth > 100) playerHealth = 100;
+                if (playerHealth > _startingHealth) playerHealth = _startingHealth;
 
                 Console.WriteLine();
                 Console.WriteLine("Your inventory: " + (inventory.Count == 0 ? "(empty)" : string.Join(", ", inventory)));
 
                 if (gold >= 100)
                 {
-                    Console.WriteLine("You’ve gathered enough gold to escape the dungeon!");
+                    Console.WriteLine("You've gathered enough gold to escape the dungeon!");
                     gameOver = true;
                 }
 
                 if (playerHealth <= 0)
                 {
-                    Console.WriteLine("You’ve perished in the depths of the dungeon.");
+                    Console.WriteLine("You've perished in the depths of the dungeon.");
                     gameOver = true;
                 }
             }
