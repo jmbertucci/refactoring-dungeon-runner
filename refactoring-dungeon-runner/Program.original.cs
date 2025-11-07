@@ -5,7 +5,7 @@ namespace refactoring_dungeon_runner
 {
     internal class ProgramOriginal
     {
-        static void Main(string[] args)
+        static void OldMain(string[] args)
         {
             var random = new Random();
             int playerHealth = 100;
