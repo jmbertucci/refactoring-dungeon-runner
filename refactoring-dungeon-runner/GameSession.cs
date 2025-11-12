@@ -17,7 +17,6 @@ namespace refactoring_dungeonrunner
         private readonly Player _player;
         private readonly Random _random;
         private readonly string[] _roomEntryPhrases;
-        private int? _forcedFirstEncounterType;
 
         private int _x;
         private int _y;
@@ -30,11 +29,10 @@ namespace refactoring_dungeonrunner
 
         public bool GameOver => Mode == GameMode.GameOver;
 
-        public GameSession(Player player, string[] roomEntryPhrases, int? forcedFirstEncounterType = null, Random? random = null)
+        public GameSession(Player player, string[] roomEntryPhrases, Random? random = null)
         {
             _player = player ?? throw new ArgumentNullException(nameof(player));
             _roomEntryPhrases = roomEntryPhrases ?? Array.Empty<string>();
-            _forcedFirstEncounterType = forcedFirstEncounterType;
             _random = random ?? new Random();
         }
 
@@ -124,9 +122,8 @@ namespace refactoring_dungeonrunner
                 yield return phrase;
             }
 
-            // Determine encounter
-            int encounterType = _forcedFirstEncounterType ?? _random.Next(0, 4);
-            _forcedFirstEncounterType = null;
+            // Determine encounter randomly
+            int encounterType = _random.Next(0, 4);
 
             if (encounterType == 0)
             {
