@@ -21,12 +21,9 @@ namespace refactoring_dungeonrunner
         private int _x;
         private int _y;
 
-        // Combat state
-        private string _monsterName = string.Empty;
-        private int _monsterHealth;
+        private IEncounter? _currentEncounter;
 
         public GameMode Mode { get; private set; } = GameMode.Exploration;
-
         public bool GameOver => Mode == GameMode.GameOver;
 
         public GameSession(Player player, string[] roomEntryPhrases, Random? random = null)
@@ -45,14 +42,14 @@ namespace refactoring_dungeonrunner
             }
         }
 
-        public string GetPrompt() =>
-            Mode switch
+        public string GetPrompt()
+        {
+            return Mode switch
             {
                 GameMode.Exploration => "Move (N/S/E/W), type HELP, or Q to quit: ",
-                GameMode.Combat => "(A)ttack, (R)un or (Q)uit: ",
-                GameMode.Fountain => "(D)rink, (I)gnore or (Q)uit? ",
-                _ => string.Empty
+                _ => _currentEncounter?.GetPrompt() ?? string.Empty
             };
+        }
 
         public IEnumerable<string> ProcessInput(string input)
         {
@@ -69,13 +66,30 @@ namespace refactoring_dungeonrunner
                     break;
 
                 case GameMode.Combat:
-                    foreach (var line in ProcessCombat(cmd))
-                        yield return line;
-                    break;
-
                 case GameMode.Fountain:
-                    foreach (var line in ProcessFountain(cmd))
+                    if (_currentEncounter is null)
+                        yield break;
+
+                    foreach (var line in _currentEncounter.OnInput(cmd))
                         yield return line;
+
+                    if (_currentEncounter.IsComplete)
+                    {
+                        if (_currentEncounter.EndGame)
+                        {
+                            Mode = GameMode.GameOver;
+                            yield break;
+                        }
+
+                        // Return to exploration after encounter completes.
+                        Mode = GameMode.Exploration;
+
+                        foreach (var post in PostStep())
+                            yield return post;
+
+                        // Clear encounter
+                        _currentEncounter = null;
+                    }
                     break;
             }
         }
@@ -122,169 +136,30 @@ namespace refactoring_dungeonrunner
                 yield return phrase;
             }
 
-            // Determine encounter randomly
-            int encounterType = _random.Next(0, 4);
+            // Create and enter a random encounter
+            _currentEncounter = EncounterFactory.CreateRandom(_player, _random);
 
-            if (encounterType == 0)
+            foreach (var line in _currentEncounter.OnEnter())
+                yield return line;
+
+            // If non-interactive, immediately process PostStep and clear
+            if (_currentEncounter.IsComplete)
             {
-                // Combat setup
-                yield return "A monster appears!";
-                _monsterHealth = _random.Next(20, 60);
-                _monsterName = _random.Next(0, 3) switch
+                if (_currentEncounter.EndGame)
                 {
-                    0 => "Goblin",
-                    1 => "Skeleton",
-                    _ => "Slime"
-                };
-                yield return $"It's a {_monsterName} with {_monsterHealth} HP!";
-                Mode = GameMode.Combat;
-                yield break;
-            }
-
-            if (encounterType == 1)
-            {
-                yield return "You find a chest!";
-                int goldFound = _random.Next(10, 40);
-                _player.AddGold(goldFound);
-                yield return $"You collect {goldFound} gold coins!";
-                if (_random.Next(0, 3) == 0)
-                {
-                    string foundItem = "Elixir";
-                    _player.AddItem(foundItem);
-                    yield return $"You found a {foundItem}!";
-                }
-                foreach (var post in PostStep())
-                    yield return post;
-                yield break;
-            }
-
-            if (encounterType == 2)
-            {
-                yield return "You discover an ancient fountain bubbling with strange liquid.";
-                Mode = GameMode.Fountain;
-                yield break;
-            }
-
-            // Quiet room
-            yield return "The room is eerily quiet... you take a short rest.";
-            int heal = _random.Next(5, 15);
-            _player.Heal(heal);
-            yield return $"You recover {heal} HP.";
-
-            foreach (var post in PostStep())
-                yield return post;
-        }
-
-        private IEnumerable<string> ProcessCombat(string cmd)
-        {
-            if (cmd == "Q")
-            {
-                yield return "You abandon the fight and give up your quest...";
-                Mode = GameMode.GameOver;
-                yield break;
-            }
-
-            if (cmd == "A")
-            {
-                int dmg = _random.Next(5, 20);
-                _monsterHealth -= dmg;
-                yield return $"You hit the {_monsterName} for {dmg} damage!";
-
-                if (_monsterHealth <= 0)
-                {
-                    yield return $"The {_monsterName} collapses!";
-                    int loot = _random.Next(5, 15);
-                    _player.AddGold(loot);
-                    yield return $"You find {loot} gold coins!";
-                    if (_random.Next(0, 2) == 0)
-                    {
-                        string item = "Potion";
-                        _player.AddItem(item);
-                        yield return $"You also found a {item}!";
-                    }
-                    Mode = GameMode.Exploration;
-                    foreach (var post in PostStep())
-                        yield return post;
+                    Mode = GameMode.GameOver;
                     yield break;
                 }
 
-                // Monster turn
-                int mdmg = _random.Next(3, 15);
-                _player.Damage(mdmg);
-                yield return $"The {_monsterName} hits you for {mdmg}!";
-
-                if (_player.IsDead)
-                {
-                    yield return "You have been defeated...";
-                    Mode = GameMode.GameOver;
-                }
-                yield break;
-            }
-
-            if (cmd == "R")
-            {
-                yield return "You run away!";
-                Mode = GameMode.Exploration;
                 foreach (var post in PostStep())
                     yield return post;
+
+                _currentEncounter = null;
                 yield break;
             }
 
-            // Invalid input in combat -> lose turn
-            yield return "You hesitate and lose your turn!";
-
-            // Monster turn
-            int md = _random.Next(3, 15);
-            _player.Damage(md);
-            yield return $"The {_monsterName} hits you for {md}!";
-            if (_player.IsDead)
-            {
-                yield return "You have been defeated...";
-                Mode = GameMode.GameOver;
-            }
-        }
-
-        private IEnumerable<string> ProcessFountain(string cmd)
-        {
-            if (cmd == "Q")
-            {
-                yield return "You decide the dungeon is too perilous and depart...";
-                Mode = GameMode.GameOver;
-                yield break;
-            }
-
-            if (cmd == "D")
-            {
-                int effect = _random.Next(0, 2);
-                if (effect == 0)
-                {
-                    int heal = _random.Next(10, 30);
-                    _player.Heal(heal);
-                    yield return $"You feel refreshed! (+{heal} HP)";
-                }
-                else
-                {
-                    int dmg = _random.Next(10, 25);
-                    _player.Damage(dmg);
-                    yield return $"The liquid burns! (-{dmg} HP)";
-                    if (_player.IsDead)
-                    {
-                        yield return "You collapse beside the cursed fountain...";
-                        Mode = GameMode.GameOver;
-                        yield break;
-                    }
-                }
-                Mode = GameMode.Exploration;
-                foreach (var post in PostStep())
-                    yield return post;
-                yield break;
-            }
-
-            // Ignore or any other input
-            yield return "You move on, leaving the fountain behind.";
-            Mode = GameMode.Exploration;
-            foreach (var post in PostStep())
-                yield return post;
+            // Interactive encounters switch the mode
+            Mode = _currentEncounter.Mode;
         }
 
         private IEnumerable<string> PostStep()
