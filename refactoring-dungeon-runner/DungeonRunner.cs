@@ -84,143 +84,11 @@ namespace refactoring_dungeonrunner
                     Console.WriteLine(phrase);
                 }
 
-                int encounterType = _forcedFirstEncounterType.HasValue
-                    ? _forcedFirstEncounterType.Value
-                    : random.Next(0, 4);
-                _forcedFirstEncounterType = null; // Only applies to first encounter if set.
+                (bool flowControl, gameOver) = EncounterType(random, player, gameOver);
 
-                if (encounterType == 0)
+                if (!flowControl)
                 {
-                    Console.WriteLine("A monster appears!");
-                    int monsterHealth = random.Next(20, 60);
-                    string monsterName = random.Next(0, 3) switch
-                    {
-                        0 => "Goblin",
-                        1 => "Skeleton",
-                        _ => "Slime"
-                    };
-                    Console.WriteLine($"It's a {monsterName} with {monsterHealth} HP!");
-
-                    bool fightOver = false;
-                    while (!fightOver && !gameOver)
-                    {
-                        Console.Write("(A)ttack, (R)un or (Q)uit: ");
-                        var choice = Console.ReadLine();
-                        if (string.IsNullOrWhiteSpace(choice)) continue;
-
-                        var c = choice.ToUpper();
-                        if (c == "Q")
-                        {
-                            Console.WriteLine("You abandon the fight and give up your quest...");
-                            gameOver = true;
-                            fightOver = true;
-                            break;
-                        }
-
-                        if (c == "A")
-                        {
-                            int dmg = random.Next(5, 20);
-                            monsterHealth -= dmg;
-                            Console.WriteLine($"You hit the {monsterName} for {dmg} damage!");
-
-                            if (monsterHealth <= 0)
-                            {
-                                Console.WriteLine($"The {monsterName} collapses!");
-                                int loot = random.Next(5, 15);
-                                player.AddGold(loot);
-                                Console.WriteLine($"You find {loot} gold coins!");
-                                if (random.Next(0, 2) == 0)
-                                {
-                                    string item = "Potion";
-                                    Console.WriteLine($"You also found a {item}!");
-                                    player.AddItem(item);
-                                }
-                                fightOver = true;
-                            }
-                            else
-                            {
-                                int mdmg = random.Next(3, 15);
-                                player.Damage(mdmg);
-                                Console.WriteLine($"The {monsterName} hits you for {mdmg}!");
-                                if (player.IsDead)
-                                {
-                                    Console.WriteLine("You have been defeated...");
-                                    gameOver = true;
-                                    break;
-                                }
-                            }
-                        }
-                        else if (c == "R")
-                        {
-                            Console.WriteLine("You run away!");
-                            fightOver = true;
-                        }
-                        else
-                        {
-                            Console.WriteLine("You hesitate and lose your turn!");
-                        }
-                    }
-                }
-                else if (encounterType == 1)
-                {
-                    Console.WriteLine("You find a chest!");
-                    int goldFound = random.Next(10, 40);
-                    player.AddGold(goldFound);
-                    Console.WriteLine($"You collect {goldFound} gold coins!");
-                    if (random.Next(0, 3) == 0)
-                    {
-                        string foundItem = "Elixir";
-                        Console.WriteLine($"You found a {foundItem}!");
-                        player.AddItem(foundItem);
-                    }
-                }
-                else if (encounterType == 2)
-                {
-                    Console.WriteLine("You discover an ancient fountain bubbling with strange liquid.");
-                    Console.Write("(D)rink, (I)gnore or (Q)uit? ");
-                    var drinkChoice = Console.ReadLine();
-                    if (string.IsNullOrWhiteSpace(drinkChoice)) continue;
-
-                    var dc = drinkChoice.ToUpper();
-                    if (dc == "Q")
-                    {
-                        Console.WriteLine("You decide the dungeon is too perilous and depart...");
-                        gameOver = true;
-                        continue;
-                    }
-
-                    if (dc == "D")
-                    {
-                        int effect = random.Next(0, 2);
-                        if (effect == 0)
-                        {
-                            int heal = random.Next(10, 30);
-                            player.Heal(heal);
-                            Console.WriteLine($"You feel refreshed! (+{heal} HP)");
-                        }
-                        else
-                        {
-                            int dmg = random.Next(10, 25);
-                            player.Damage(dmg);
-                            Console.WriteLine($"The liquid burns! (-{dmg} HP)");
-                            if (player.IsDead)
-                            {
-                                Console.WriteLine("You collapse beside the cursed fountain...");
-                                gameOver = true;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("You move on, leaving the fountain behind.");
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("The room is eerily quiet... you take a short rest.");
-                    int heal = random.Next(5, 15);
-                    player.Heal(heal);
-                    Console.WriteLine($"You recover {heal} HP.");
+                    continue;
                 }
 
                 Console.WriteLine();
@@ -243,6 +111,152 @@ namespace refactoring_dungeonrunner
             Console.WriteLine("=== Game Over ===");
             Console.WriteLine($"{player.Name} finished with {player.Gold} gold and {player.Health} HP.");
             Console.WriteLine("Thanks for playing Dungeon Runner!");
+        }
+
+        private (bool flowControl, bool value) EncounterType(Random random, Player player, bool gameOver)
+        {
+            int encounterType = _forcedFirstEncounterType.HasValue ? _forcedFirstEncounterType.Value : random.Next(0, 4);
+            _forcedFirstEncounterType = null; // Only applies to first encounter if set.
+
+            // Encounter: Monster
+            if (encounterType == 0)
+            {
+                Console.WriteLine("A monster appears!");
+                int monsterHealth = random.Next(20, 60);
+                string monsterName = random.Next(0, 3) switch
+                {
+                    0 => "Goblin",
+                    1 => "Skeleton",
+                    _ => "Slime"
+                };
+                Console.WriteLine($"It's a {monsterName} with {monsterHealth} HP!");
+
+                bool fightOver = false;
+                while (!fightOver && !gameOver)
+                {
+                    Console.Write("(A)ttack, (R)un or (Q)uit: ");
+                    var choice = Console.ReadLine();
+                    if (string.IsNullOrWhiteSpace(choice)) continue;
+
+                    var c = choice.ToUpper();
+                    if (c == "Q")
+                    {
+                        Console.WriteLine("You abandon the fight and give up your quest...");
+                        gameOver = true;
+                        fightOver = true;
+                        break;
+                    }
+
+                    if (c == "A")
+                    {
+                        int dmg = random.Next(5, 20);
+                        monsterHealth -= dmg;
+                        Console.WriteLine($"You hit the {monsterName} for {dmg} damage!");
+
+                        if (monsterHealth <= 0)
+                        {
+                            Console.WriteLine($"The {monsterName} collapses!");
+                            int loot = random.Next(5, 15);
+                            player.AddGold(loot);
+                            Console.WriteLine($"You find {loot} gold coins!");
+                            if (random.Next(0, 2) == 0)
+                            {
+                                string item = "Potion";
+                                Console.WriteLine($"You also found a {item}!");
+                                player.AddItem(item);
+                            }
+                            fightOver = true;
+                        }
+                        else
+                        {
+                            int mdmg = random.Next(3, 15);
+                            player.Damage(mdmg);
+                            Console.WriteLine($"The {monsterName} hits you for {mdmg}!");
+                            if (player.IsDead)
+                            {
+                                Console.WriteLine("You have been defeated...");
+                                gameOver = true;
+                                break;
+                            }
+                        }
+                    }
+                    else if (c == "R")
+                    {
+                        Console.WriteLine("You run away!");
+                        fightOver = true;
+                    }
+                    else
+                    {
+                        Console.WriteLine("You hesitate and lose your turn!");
+                    }
+                }
+            }
+            // Encounter: Treasure Chest
+            else if (encounterType == 1)
+            {
+                Console.WriteLine("You find a chest!");
+                int goldFound = random.Next(10, 40);
+                player.AddGold(goldFound);
+                Console.WriteLine($"You collect {goldFound} gold coins!");
+                if (random.Next(0, 3) == 0)
+                {
+                    string foundItem = "Elixir";
+                    Console.WriteLine($"You found a {foundItem}!");
+                    player.AddItem(foundItem);
+                }
+            }
+            // Encounter: Fountain
+            else if (encounterType == 2)
+            {
+                Console.WriteLine("You discover an ancient fountain bubbling with strange liquid.");
+                Console.Write("(D)rink, (I)gnore or (Q)uit? ");
+                var drinkChoice = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(drinkChoice)) return (flowControl: false, value: default);
+
+                var dc = drinkChoice.ToUpper();
+                if (dc == "Q")
+                {
+                    Console.WriteLine("You decide the dungeon is too perilous and depart...");
+                    gameOver = true;
+                    return (flowControl: false, value: default);
+                }
+
+                if (dc == "D")
+                {
+                    int effect = random.Next(0, 2);
+                    if (effect == 0)
+                    {
+                        int heal = random.Next(10, 30);
+                        player.Heal(heal);
+                        Console.WriteLine($"You feel refreshed! (+{heal} HP)");
+                    }
+                    else
+                    {
+                        int dmg = random.Next(10, 25);
+                        player.Damage(dmg);
+                        Console.WriteLine($"The liquid burns! (-{dmg} HP)");
+                        if (player.IsDead)
+                        {
+                            Console.WriteLine("You collapse beside the cursed fountain...");
+                            gameOver = true;
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("You move on, leaving the fountain behind.");
+                }
+            }
+            // Encounter: Empty Room
+            else
+            {
+                Console.WriteLine("The room is eerily quiet... you take a short rest.");
+                int heal = random.Next(5, 15);
+                player.Heal(heal);
+                Console.WriteLine($"You recover {heal} HP.");
+            }
+
+            return (flowControl: true, value: default);
         }
     }
 }
