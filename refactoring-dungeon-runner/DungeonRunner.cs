@@ -38,72 +38,14 @@ namespace refactoring_dungeonrunner
 
             while (!gameOver)
             {
-                Console.WriteLine();
-                Console.WriteLine($"Location: ({x},{y}) | Health: {player.Health} | Gold: {player.Gold}");
-                Console.Write("Move (N/S/E/W), type HELP, or Q to quit: ");
-                var input = Console.ReadLine();
-
-                if (string.IsNullOrWhiteSpace(input)) continue;
-
-                var cmd = input.ToUpper();
-                if (cmd == "HELP" || cmd == "H")
+                (bool? flowControl, (x, y, gameOver)) = GameLoop(random, player, x, y, gameOver, roomEntryPhrases);
+                if (flowControl == false)
                 {
-                    Console.WriteLine("Available commands:");
-                    Console.WriteLine(" - N: Move north");
-                    Console.WriteLine(" - S: Move south");
-                    Console.WriteLine(" - E: Move east");
-                    Console.WriteLine(" - W: Move west");
-                    Console.WriteLine(" - Q: Quit the game");
-                    Console.WriteLine(" - HELP or H: Show this help");
-                    Console.WriteLine();
-                    Console.WriteLine("Contextual commands:");
-                    Console.WriteLine(" - In combat: A to Attack, R to Run, Q to Quit immediately");
-                    Console.WriteLine(" - At fountains: D to Drink, I to Ignore, Q to Quit immediately");
-                    continue;
-                }
-
-                if (cmd == "Q")
-                {
-                    Console.WriteLine("You decide to end your journey...");
                     break;
                 }
-
-                if (cmd == "N") y++;
-                else if (cmd == "S") y--;
-                else if (cmd == "E") x++;
-                else if (cmd == "W") x--;
-                else
-                {
-                    Console.WriteLine("You stumble aimlessly.");
-                    continue;
-                }
-
-                if (roomEntryPhrases.Length > 0)
-                {
-                    var phrase = roomEntryPhrases[random.Next(0, roomEntryPhrases.Length)];
-                    Console.WriteLine(phrase);
-                }
-
-                (bool flowControl, gameOver) = EncounterType(random, player, gameOver);
-
-                if (!flowControl)
+                else if (flowControl == true)
                 {
                     continue;
-                }
-
-                Console.WriteLine();
-                Console.WriteLine("Your inventory: " + (player.Inventory.Count == 0 ? "(empty)" : string.Join(", ", player.Inventory)));
-
-                if (player.Gold >= 100)
-                {
-                    Console.WriteLine("You've gathered enough gold to escape the dungeon!");
-                    gameOver = true;
-                }
-
-                if (player.IsDead)
-                {
-                    Console.WriteLine("You've perished in the depths of the dungeon.");
-                    gameOver = true;
                 }
             }
 
@@ -111,6 +53,79 @@ namespace refactoring_dungeonrunner
             Console.WriteLine("=== Game Over ===");
             Console.WriteLine($"{player.Name} finished with {player.Gold} gold and {player.Health} HP.");
             Console.WriteLine("Thanks for playing Dungeon Runner!");
+        }
+
+        private (bool? flowControl, (int x, int y, bool gameOver) value) GameLoop(Random random, Player player, int x, int y, bool gameOver, string[] roomEntryPhrases)
+        {
+            Console.WriteLine();
+            Console.WriteLine($"Location: ({x},{y}) | Health: {player.Health} | Gold: {player.Gold}");
+            Console.Write("Move (N/S/E/W), type HELP, or Q to quit: ");
+            var input = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(input)) return (flowControl: true, value: default);
+
+            var cmd = input.ToUpper();
+            if (cmd == "HELP" || cmd == "H")
+            {
+                Console.WriteLine("Available commands:");
+                Console.WriteLine(" - N: Move north");
+                Console.WriteLine(" - S: Move south");
+                Console.WriteLine(" - E: Move east");
+                Console.WriteLine(" - W: Move west");
+                Console.WriteLine(" - Q: Quit the game");
+                Console.WriteLine(" - HELP or H: Show this help");
+                Console.WriteLine();
+                Console.WriteLine("Contextual commands:");
+                Console.WriteLine(" - In combat: A to Attack, R to Run, Q to Quit immediately");
+                Console.WriteLine(" - At fountains: D to Drink, I to Ignore, Q to Quit immediately");
+                return (flowControl: true, value: default);
+            }
+
+            if (cmd == "Q")
+            {
+                Console.WriteLine("You decide to end your journey...");
+                return (flowControl: false, value: default);
+            }
+
+            if (cmd == "N") y++;
+            else if (cmd == "S") y--;
+            else if (cmd == "E") x++;
+            else if (cmd == "W") x--;
+            else
+            {
+                Console.WriteLine("You stumble aimlessly.");
+                return (flowControl: true, value: default);
+            }
+
+            if (roomEntryPhrases.Length > 0)
+            {
+                var phrase = roomEntryPhrases[random.Next(0, roomEntryPhrases.Length)];
+                Console.WriteLine(phrase);
+            }
+
+            (bool flowControl, gameOver) = EncounterType(random, player, gameOver);
+
+            if (!flowControl)
+            {
+                return (flowControl: true, value: default);
+            }
+
+            Console.WriteLine();
+            Console.WriteLine("Your inventory: " + (player.Inventory.Count == 0 ? "(empty)" : string.Join(", ", player.Inventory)));
+
+            if (player.Gold >= 100)
+            {
+                Console.WriteLine("You've gathered enough gold to escape the dungeon!");
+                gameOver = true;
+            }
+
+            if (player.IsDead)
+            {
+                Console.WriteLine("You've perished in the depths of the dungeon.");
+                gameOver = true;
+            }
+
+            return (flowControl: null, value: default);
         }
 
         private (bool flowControl, bool value) EncounterType(Random random, Player player, bool gameOver)
